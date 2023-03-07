@@ -3,7 +3,7 @@
 title: Linux From Scratch
 date: 2023-03-07T13:05:41Z
 featured: false
-draft: true
+draft: false
 comment: true
 toc: true
 reward: true
