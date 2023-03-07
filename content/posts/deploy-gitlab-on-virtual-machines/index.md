@@ -18,4 +18,17 @@ Summary.
 
 <!--more-->
 
-Content.
+# Prerequisite
+- Ubuntu Server 20.04 LTS
+
+# Install and configure the necessary dependencies
+```
+    sudo apt-get update -y
+    sudo apt-get install -y curl openssh-server ca-certificates tzdata perl
+    sudo apt-get install -y postfix
+```
+# Add the GitLab package repository and install the package
+```
+    curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash
+    sudo EXTERNAL_URL="https://gitlab.chuhuynh.com" apt-get install gitlab-ee
+```
