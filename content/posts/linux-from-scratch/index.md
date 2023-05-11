@@ -113,4 +113,96 @@ Also, We need to create a symbolic link (or hard link) for /bin/sh to /bin/bash
     sudo ln -s /bin/bash /bin/sh
 ```
 
-Test
+# Stage 1: 
+**_NOTE:_** Procedures performed as root user must have the LFS env variable set FOR THE ROOT USER.
+```
+    sudo -i
+    export LFS=/mnt/lfs # can add this to root .bashrc file
+```
+## Create a new partition for LFS
+![Alt text](./images/lfs_partition.PNG "LFS Partition")
+```
+/ (root partition): 20G
+/boot : 200MiB
+/home: 9.8GiB
+/mnt/lfs: partition for LFS - 30GiB
+```
+## Install packages and patches:
+```
+    mkdir -v $LFS/sources
+    chmod -v a+wt $LFS/sources
+    cd $LFS/sources
+    wget https://mirror-hk.koddos.net/lfs/lfs-packages/lfs-packages-11.3.tar
+    tar -xvf lfs-packages-11.3.tar
+    mv 11.3/* .
+```
+
+## Create a limited directory layout:
+```
+    mkdir -pv $LFS/{etc,var} $LFS/usr/{bin,lib,sbin}
+    for i in bin lib sbin; do
+        ln -sv usr/$i $LFS/$i
+    done
+    ## '/mnt/lfs/bin' -> 'usr/bin'
+    ## '/mnt/lfs/lib' -> 'usr/lib'
+    ## '/mnt/lfs/sbin' -> 'usr/sbin'
+
+    case $(uname -m) in
+        x86_64) mkdir -pv $LFS/lib64 ;;
+    esac
+    ## mkdir: created directory '/mnt/lfs/lib64'
+
+    mkdir -pv $LFS/tools
+```
+
+## Adding LFS User:
+```
+    groupadd lfs
+    useradd -s /bin/bash -g lfs -m -k /dev/null lfs
+```
+Explain:
+- -s /bin/bash: default shell = bash
+- -g lfs: add to group lfs
+- -m: create home dir for this user
+- -k /dev/null: by default it will copy files from /etc/skel folder (which contains .bashrc, etc), here we override with /dev/null.
+
+- Grant lfs full access to all 
+```
+    chown -v lfs $LFS/{usr{,/*},lib,var,etc,bin,sbin,tools}
+    case $(uname -m) in 
+        x86_64) chown -v lfs $LFS/lib64 ;;
+    esac
+```
+- Setting up environment:
+```
+    su - lfs
+    cat > ~/.bash_profile << "EOF"
+    exec env -i HOME=$HOME TERM=$TERM PS1='\u:\w\$ ' /bin/bash
+    EOF    
+```
+```
+cat > ~/.bashrc << "EOF"
+set +h
+umask 022
+LFS=/mnt/lfs
+LC_ALL=POSIX
+LFS_TGT=$(uname -m)-lfs-linux-gnu
+PATH=/usr/bin
+if [ ! -L /bin ]; then PATH=/bin:$PATH; fi
+PATH=$LFS/tools/bin:$PATH
+CONFIG_SITE=$LFS/usr/share/config.site
+export LFS LC_ALL LFS_TGT PATH CONFIG_SITE
+EOF
+```
+Explain:
+- set +h: disable "hashall" option. This option causes the shell to remember the full path to executable commands that are run in the shell session. Switching off the hash function
+forces the shell to search the PATH whenever a program is to be run.As such, the shell will find the newly compiled
+tools in $LFS/tools/bin as soon as they are available without remembering a previous version of the same program
+provided by the host distro, in /usr/bin or /bin.
+- umask 022: set default file permissions for newly created filese and directories. The mask is subtracted from the default permissions of 666 for files and 777 for directories. `022` means write permission (2) is removed from the group and others. => `644` for new files, `755` for new directories.
+##
+# Stage 2:
+**_NOTE:_**
+
+# Stage 3:
+**_NOTE:_**
