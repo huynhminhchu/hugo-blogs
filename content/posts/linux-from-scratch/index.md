@@ -134,7 +134,8 @@ Also, We need to create a symbolic link (or hard link) for /bin/sh to /bin/bash
     cd $LFS/sources
     wget https://mirror-hk.koddos.net/lfs/lfs-packages/lfs-packages-11.3.tar
     tar -xvf lfs-packages-11.3.tar
-    mv 11.3/* .
+    mv 11.3/* sources/
+    chown root:root $LFS/sources/*
 ```
 
 ## Create a limited directory layout:
@@ -200,9 +201,9 @@ forces the shell to search the PATH whenever a program is to be run.As such, the
 tools in $LFS/tools/bin as soon as they are available without remembering a previous version of the same program
 provided by the host distro, in /usr/bin or /bin.
 - umask 022: set default file permissions for newly created filese and directories. The mask is subtracted from the default permissions of 666 for files and 777 for directories. `022` means write permission (2) is removed from the group and others. => `644` for new files, `755` for new directories.
-##
-# Stage 2:
-**_NOTE:_**
+## 
+# Stage 2: Build
+**_NOTE:_** Run as `lfs` user
 
 # Stage 3:
 **_NOTE:_**
